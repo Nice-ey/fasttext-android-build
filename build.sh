@@ -1,6 +1,9 @@
 #!/bin/bash
 
-# 设置目标架构（armeabi-v7a 或 arm64-v8a）
+# 创建输出目录
+mkdir -p output
+
+# 设置目标架构（可修改为 arm64-v8a）
 TARGET_ARCH="armeabi-v7a"
 ANDROID_API=21
 
@@ -37,5 +40,5 @@ pip wheel fasttext==0.9.2 \
     --global-option="-DANDROID_ABI=$TARGET_ARCH" \
     --global-option="-DANDROID_NATIVE_API_LEVEL=$ANDROID_API"
 
-# 将生成的 Wheel 文件复制到挂载目录
-cp *.whl /app/output/
+# 移动生成的 Wheel 文件到输出目录
+mv *.whl output/
