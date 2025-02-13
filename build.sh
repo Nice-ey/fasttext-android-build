@@ -40,6 +40,7 @@ export ANDROID_NATIVE_API_LEVEL=$ANDROID_API
 
 # 安装 CMake
 pip install cmake==3.22.1
+pip install meson-python ninja pyproject-hooks
 
 # 编译 fasttext
 pip wheel fasttext==0.9.2 \
