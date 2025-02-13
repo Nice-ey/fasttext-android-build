@@ -33,12 +33,21 @@ export RANLIB="$TOOLCHAIN_NAME-ranlib"
 export CFLAGS="-fPIE -fPIC"
 export LDFLAGS="-pie"
 
+# 设置 CMake 工具链
+export CMAKE_TOOLCHAIN_FILE=$NDK_HOME/build/cmake/android.toolchain.cmake
+export ANDROID_ABI=$TARGET_ARCH
+export ANDROID_NATIVE_API_LEVEL=$ANDROID_API
+
+# 安装 CMake
+pip install cmake==3.22.1
+
 # 编译 fasttext
 pip wheel fasttext==0.9.2 \
     --global-option="build_ext" \
-    --global-option="-DCMAKE_TOOLCHAIN_FILE=$NDK_HOME/build/cmake/android.toolchain.cmake" \
-    --global-option="-DANDROID_ABI=$TARGET_ARCH" \
-    --global-option="-DANDROID_NATIVE_API_LEVEL=$ANDROID_API"
+    --global-option="-DCMAKE_TOOLCHAIN_FILE=$CMAKE_TOOLCHAIN_FILE" \
+    --global-option="-DANDROID_ABI=$ANDROID_ABI" \
+    --global-option="-DANDROID_NATIVE_API_LEVEL=$ANDROID_NATIVE_API_LEVEL" \
+    --no-build-isolation
 
 # 移动生成的 Wheel 文件到输出目录
 mv *.whl output/
