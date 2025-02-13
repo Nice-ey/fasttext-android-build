@@ -26,7 +26,7 @@ python -m venv venv
 source venv/bin/activate
 
 # 安装预编译的 arm 架构 numpy
-pip install numpy==1.21.6 \
+pip install numpy==1.21.4 \
     --target=/tmp/numpy-stubs \
     --only-binary=:all: \
     --platform=manylinux2014_armv7l \
@@ -34,7 +34,7 @@ pip install numpy==1.21.6 \
     --implementation=cp
 
 # 设置 Python 路径
-export PYTHONPATH="/tmp/numpy-stubs:$PYTHONPATH"
+export PYTHONPATH="/tmp/numpy-stubs/:$PYTHONPATH"
 
 # 设置工具链
 export CC="${CLANG_PREFIX}-clang"
