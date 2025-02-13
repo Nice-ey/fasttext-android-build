@@ -26,7 +26,7 @@ python -m venv venv
 source venv/bin/activate
 
 # 安装预编译的 arm 架构 numpy
-pip install numpy==1.21.4 \
+pip install numpy==2.2.2 \
     --target=/tmp/numpy-stubs \
     --only-binary=:all: \
     --platform=manylinux2014_armv7l \
