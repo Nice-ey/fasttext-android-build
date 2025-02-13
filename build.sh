@@ -37,6 +37,25 @@ export LDFLAGS="-pie"
 export CMAKE_TOOLCHAIN_FILE=$NDK_HOME/build/cmake/android.toolchain.cmake
 export ANDROID_ABI=$TARGET_ARCH
 export ANDROID_NATIVE_API_LEVEL=$ANDROID_API
+# 创建虚拟环境
+python -m venv venv
+source venv/bin/activate
+
+# 安装核心构建工具
+pip install --upgrade pip setuptools wheel
+pip install meson ninja cmake==3.22.1
+
+# 强制设置工具链环境变量
+export CC="$CLANG_PREFIX-clang"
+export CXX="$CLANG_PREFIX-clang++"
+export AR="llvm-ar"
+export STRIP="llvm-strip"
+export CFLAGS="-fPIE -fPIC -I${NDK_HOME}/sysroot/usr/include"
+export LDFLAGS="-pie -L${NDK_HOME}/sysroot/usr/lib"
+
+# 生成动态交叉编译配置文件
+sed -i "s|arch = '.*'|arch = '$MESON_ARCH'|" android-cross.ini
+sed -i "s|api_level = .*|api_level = $ANDROID_API|" android-cross.ini
 
 # 安装 CMake
 pip install cmake==3.22.1
