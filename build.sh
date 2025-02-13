@@ -3,21 +3,17 @@
 # 创建输出目录
 mkdir -p output
 
-# 设置目标架构（可修改为 arm64-v8a）
+# 设置目标架构（armeabi-v7a）
 TARGET_ARCH="armeabi-v7a"
 ANDROID_API=21
+NDK_HOME="$GITHUB_WORKSPACE/android-ndk-r21e"  # 显式定义 NDK 路径
 
-# 配置编译工具链
+# 配置工具链参数
 case $TARGET_ARCH in
     "armeabi-v7a")
-        HOST_TAG="linux-x86_64"
-        TOOLCHAIN_NAME="arm-linux-androideabi"
         CLANG_PREFIX="armv7a-linux-androideabi$ANDROID_API"
-        ;;
-    "arm64-v8a")
-        HOST_TAG="linux-x86_64"
-        TOOLCHAIN_NAME="aarch64-linux-android"
-        CLANG_PREFIX="aarch64-linux-android$ANDROID_API"
+        TOOLCHAIN_DIR="$NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64"
+        SYSROOT="$TOOLCHAIN_DIR/sysroot"
         ;;
     *)
         echo "Unsupported ABI: $TARGET_ARCH"
@@ -25,49 +21,59 @@ case $TARGET_ARCH in
         ;;
 esac
 
-# 导出编译参数
-export CC="$CLANG_PREFIX-clang"
-export CXX="$CLANG_PREFIX-clang++"
-export AR="$TOOLCHAIN_NAME-ar"
-export RANLIB="$TOOLCHAIN_NAME-ranlib"
-export CFLAGS="-fPIE -fPIC"
-export LDFLAGS="-pie"
-
-# 设置 CMake 工具链
-export CMAKE_TOOLCHAIN_FILE=$NDK_HOME/build/cmake/android.toolchain.cmake
-export ANDROID_ABI=$TARGET_ARCH
-export ANDROID_NATIVE_API_LEVEL=$ANDROID_API
 # 创建虚拟环境
 python -m venv venv
 source venv/bin/activate
 
-# 安装核心构建工具
+# 安装基础构建工具
 pip install --upgrade pip setuptools wheel
 pip install meson ninja cmake==3.22.1
 
-# 强制设置工具链环境变量
-export CC="$CLANG_PREFIX-clang"
-export CXX="$CLANG_PREFIX-clang++"
-export AR="llvm-ar"
-export STRIP="llvm-strip"
-export CFLAGS="-fPIE -fPIC -I${NDK_HOME}/sysroot/usr/include"
-export LDFLAGS="-pie -L${NDK_HOME}/sysroot/usr/lib"
+# 设置核心环境变量
+export CC="$TOOLCHAIN_DIR/bin/$CLANG_PREFIX-clang"
+export CXX="$TOOLCHAIN_DIR/bin/$CLANG_PREFIX-clang++"
+export AR="$TOOLCHAIN_DIR/bin/llvm-ar"
+export LD="$TOOLCHAIN_DIR/bin/ld"
+export RANLIB="$TOOLCHAIN_DIR/bin/llvm-ranlib"
+export STRIP="$TOOLCHAIN_DIR/bin/llvm-strip"
+export CFLAGS="-fPIE -fPIC -I$SYSROOT/usr/include"
+export CPPFLAGS="-I$SYSROOT/usr/include"
+export LDFLAGS="-pie -L$SYSROOT/usr/lib"
 
-# 生成动态交叉编译配置文件
-sed -i "s|arch = '.*'|arch = '$MESON_ARCH'|" android-cross.ini
-sed -i "s|api_level = .*|api_level = $ANDROID_API|" android-cross.ini
+# 生成 meson 交叉编译文件
+cat > android-cross.ini <<EOF
+[binaries]
+c = '$CC'
+cpp = '$CXX'
+ar = '$AR'
+strip = '$STRIP'
 
-# 安装 CMake
-pip install cmake==3.22.1
-pip install meson-python ninja pyproject-hooks
+[properties]
+sys_root = '$SYSROOT'
+c_args = ['-I$SYSROOT/usr/include']
+c_link_args = ['-L$SYSROOT/usr/lib']
+
+[host_machine]
+system = 'android'
+cpu_family = 'arm'
+cpu = 'armv7a'
+endian = 'little'
+EOF
+
+# 编译 numpy 时强制使用交叉编译
+pip install numpy==1.21.6 \
+    --no-binary numpy \
+    --config-settings="--cross-file=$(pwd)/android-cross.ini"
 
 # 编译 fasttext
 pip wheel fasttext==0.9.2 \
+    --no-deps \
     --global-option="build_ext" \
-    --global-option="-DCMAKE_TOOLCHAIN_FILE=$CMAKE_TOOLCHAIN_FILE" \
-    --global-option="-DANDROID_ABI=$ANDROID_ABI" \
-    --global-option="-DANDROID_NATIVE_API_LEVEL=$ANDROID_NATIVE_API_LEVEL" \
-    --no-build-isolation
+    --global-option="-DCMAKE_TOOLCHAIN_FILE=$NDK_HOME/build/cmake/android.toolchain.cmake" \
+    --global-option="-DANDROID_ABI=$TARGET_ARCH" \
+    --global-option="-DANDROID_NATIVE_API_LEVEL=$ANDROID_API" \
+    --config-settings="--cross-file=$(pwd)/android-cross.ini"
 
-# 移动生成的 Wheel 文件到输出目录
-mv *.whl output/
+# 处理产物
+mkdir -p output
+mv *.whl output/ 2>/dev/null || echo "No wheels generated"
