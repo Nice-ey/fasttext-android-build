@@ -1,44 +1,47 @@
-name: Build FastText Wheel
- 
+name: Build and Save WHL
+
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
- 
+    branches: [main]  # 指定触发分支
+  workflow_dispatch:  # 允许手动触发
+
 jobs:
   build:
     runs-on: ubuntu-latest
- 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
- 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.8'
- 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install setuptools wheel cython
- 
-    - name: Clone and build FastText
-      run: |
-        git clone https://github.com/facebookresearch/fastText.git
-        cd fastText
-        pip wheel .  # 构建wheel
 
-    - name: Find Wheel File
-      run: |
-        sudo chmod -R 777 /tmp
-        WHEEL_FILE=$(find /tmp -name "*.whl" | head -n 1)
-        echo "Found wheel file: $WHEEL_FILE"
-        cp $WHEEL_FILE fasttext_wheel.whl
-    
-    - name: Upload Wheel Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: fasttext-wheel
-        path: /tmp/**/*.whl
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install setuptools wheel cython
+
+      - name: Clone and build FastText
+        run: |
+          git clone https://github.com/facebookresearch/fastText.git
+          cd fastText
+          pip wheel .
+
+      - name: Find and move wheel file
+        run: |
+          WHEEL_FILE=$(find . -name "*.whl" | head -n 1)
+          echo "Found wheel file: $WHEEL_FILE"
+          mkdir -p whl
+          mv $WHEEL_FILE whl/
+
+      - name: Commit and push wheel file
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "action@github.com"
+          git add whl/
+          git commit -m "Update fasttext wheel file" || echo "No changes to commit"
+          git push origin main
