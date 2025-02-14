@@ -32,9 +32,9 @@ jobs:
  
     - name: Find and upload wheel file
       run: |
-        WHEEL_FILE=$(find /tmp/ -name "*.whl" | head -n 1)
+        WHEEL_FILE=$(find /tmp/pip-ephem-wheel-cache-* -name "*.whl" | head -n 1)
         echo "Found wheel file: $WHEEL_FILE"
-        cp $WHEEL_FILE fasttext_wheel.whl  # 将wheel文件复制到当前目录
+        cp $WHEEL_FILE fasttext_wheel.whl
     
     - name: Upload Wheel Artifact
       uses: actions/upload-artifact@v4
