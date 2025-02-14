@@ -48,8 +48,8 @@ jobs:
       - name: Download Chaquopy target
         run: |
           cd chaquopy/server/pypi
-          wget https://github.com/chaquo/chaquopy/releases/download/v3.8.16-0/target-3.8.16-0.zip
-          unzip -q target-3.8.16-0.zip -d target
+          wget https://github.com/chaquo/chaquopy/releases/download/v3.8.18-0/target-3.8.18-0.zip
+          unzip -q target-3.8.18-0.zip -d target
 
       - name: Install additional tools
         run: |
