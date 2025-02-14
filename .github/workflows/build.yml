@@ -29,6 +29,12 @@ jobs:
         git clone https://github.com/facebookresearch/fastText.git
         cd fastText
         pip wheel .  # 构建wheel文件
+
+    - name: List files in dist directory
+      run: |
+        pwd  # 打印当前工作目录
+        ls -l fastText/dist  # 列出fastText/dist目录下的文件
+
  
     - name: Upload Wheel Artifact
       uses: actions/upload-artifact@v4
