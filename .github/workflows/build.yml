@@ -34,4 +34,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: fasttext-wheel
-        path: /tmp/pip-ephem-wheel-cache-qzn3frth/wheels/35/4e/53/47622083e71bb27656dffd9190cbbb98058bb154d053bb0835/*.whl  # 修改为相对路径，从当前目录（fastText）下的dist文件夹中查找
+        path: fastText/dist/*.whl
