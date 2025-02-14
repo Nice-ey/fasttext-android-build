@@ -48,9 +48,8 @@ jobs:
       - name: Download Chaquopy target
         run: |
           cd chaquopy/server/pypi
-          ls -la  # Debug: Check files in the directory
-          chmod +x download-target.sh  # Ensure the script is executable
-          ./download-target.sh maven/com/chaquo/python/target/3.8.16-0  # Adjust version as needed
+          wget https://github.com/chaquo/chaquopy/releases/download/v3.8.16-0/target-3.8.16-0.zip
+          unzip -q target-3.8.16-0.zip -d target
 
       - name: Install additional tools
         run: |
