@@ -28,11 +28,10 @@ jobs:
       run: |
         git clone https://github.com/facebookresearch/fastText.git
         cd fastText
-        pip wheel .  # 构建wheel文件
-        working-directory: ${{ github.workspace }}  # 确保在正确的目录下执行（虽然这里不是必须的，因为cd已经改变了目录）
+        pip wheel .  # 构建wheel
  
     - name: Upload Wheel Artifact
       uses: actions/upload-artifact@v4
       with:
         name: fasttext-wheel
-        path: dist/*.whl  # 修改为相对路径，从当前目录（fastText）下的dist文件夹中查找
+        path: /tmp/pip-ephem-wheel-cache-qzn3frth/wheels/35/4e/53/47622083e71bb27656dffd9190cbbb98058bb154d053bb0835/*.whl  # 修改为相对路径，从当前目录（fastText）下的dist文件夹中查找
