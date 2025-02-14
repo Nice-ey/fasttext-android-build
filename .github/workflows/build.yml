@@ -17,27 +17,22 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.8'  # 根据需要选择合适的Python版本
+        python-version: '3.8'
  
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install setuptools wheel cython  # 安装构建fasttext所需的依赖
+        pip install setuptools wheel cython
  
     - name: Clone and build FastText
       run: |
         git clone https://github.com/facebookresearch/fastText.git
         cd fastText
         pip wheel .  # 构建wheel文件
-
-    - name: List files in dist directory
-      run: |
-        pwd  # 打印当前工作目录
-        ls -l fastText/dist  # 列出fastText/dist目录下的文件
-
+        working-directory: ${{ github.workspace }}  # 确保在正确的目录下执行（虽然这里不是必须的，因为cd已经改变了目录）
  
     - name: Upload Wheel Artifact
       uses: actions/upload-artifact@v4
       with:
         name: fasttext-wheel
-        path: fastText/dist/*.whl
+        path: dist/*.whl  # 修改为相对路径，从当前目录（fastText）下的dist文件夹中查找
