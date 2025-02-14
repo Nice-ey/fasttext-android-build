@@ -61,9 +61,7 @@ endian = 'little'
 EOF
 
 # 编译 numpy 时强制使用交叉编译
-pip install numpy \
-    --no-binary numpy \
-    --config-settings="--cross-file=$(pwd)/android-cross.ini"
+pip install numpy 
 
 # 编译 fasttext
 pip wheel fasttext==0.9.2 \
@@ -71,8 +69,7 @@ pip wheel fasttext==0.9.2 \
     --global-option="build_ext" \
     --global-option="-DCMAKE_TOOLCHAIN_FILE=$NDK_HOME/build/cmake/android.toolchain.cmake" \
     --global-option="-DANDROID_ABI=$TARGET_ARCH" \
-    --global-option="-DANDROID_NATIVE_API_LEVEL=$ANDROID_API" \
-    --config-settings="--cross-file=$(pwd)/android-cross.ini"
+    --global-option="-DANDROID_NATIVE_API_LEVEL=$ANDROID_API" 
 
 # 处理产物
 mkdir -p output
