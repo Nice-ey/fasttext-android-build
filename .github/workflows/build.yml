@@ -29,15 +29,9 @@ jobs:
         git clone https://github.com/facebookresearch/fastText.git
         cd fastText
         pip wheel .  # 构建wheel
- 
-    - name: Find and upload wheel file
-      run: |
-        WHEEL_FILE=$(find /tmp/pip-ephem-wheel-cache-* -name "*.whl" | head -n 1)
-        echo "Found wheel file: $WHEEL_FILE"
-        cp $WHEEL_FILE fasttext_wheel.whl
     
     - name: Upload Wheel Artifact
       uses: actions/upload-artifact@v4
       with:
         name: fasttext-wheel
-        path: fasttext_wheel.whl
+        path: /tmp/**/*.whl
