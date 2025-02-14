@@ -1,34 +1,37 @@
-name: Build FastText Wheel for Android
-
+name: Build FastText Wheel
+ 
 on:
   push:
-    branches: [ "main" ]  # 推送代码到 main 分支时触发
-  workflow_dispatch:      # 允许手动触发
-
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+ 
 jobs:
   build:
-    runs-on: ubuntu-latest  # 使用 GitHub 提供的 Ubuntu 环境
-
+    runs-on: ubuntu-latest
+ 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4  # 拉取仓库代码
-
-    - name: Setup NDK
-      run: |
-        # 下载 Android NDK r21e
-        wget https://dl.google.com/android/repository/android-ndk-r21e-linux-x86_64.zip
-        unzip android-ndk-r21e-linux-x86_64.zip
-        rm android-ndk-r21e-linux-x86_64.zip
-        echo "NDK_HOME=$GITHUB_WORKSPACE/android-ndk-r21e" >> $GITHUB_ENV
-
-    - name: Build Wheel
-      run: |
-        # 添加执行权限并运行编译脚本
-        chmod +x build.sh
-        ./build.sh
-
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/checkout@v2
+ 
+    - name: Set up Python
+      uses: actions/setup-python@v2
       with:
-        name: fasttext-wheels
-        path: output/*.whl
+        python-version: '3.8'  # 根据需要选择合适的Python版本
+ 
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install setuptools wheel cython  # 安装构建fasttext所需的依赖
+ 
+    - name: Clone and build FastText
+      run: |
+        git clone https://github.com/facebookresearch/fastText.git
+        cd fastText
+        pip wheel .  # 构建wheel文件
+ 
+    - name: Upload Wheel Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: fasttext-wheel
+        path: fastText/dist/*.whl
