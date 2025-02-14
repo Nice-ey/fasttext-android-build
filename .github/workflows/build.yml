@@ -25,11 +25,13 @@ jobs:
 
       - name: Download and set up Android SDK
         run: |
-          wget https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip
-          unzip -q commandlinetools-linux-7583922_latest.zip
-          export ANDROID_HOME=$PWD/android-sdk
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
-          yes | sdkmanager --licenses > /dev/null  # Accept SDK licenses
+          wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip -q commandlinetools-linux-11076708_latest.zip -d cmdline-tools
+          mkdir -p cmdline-tools/latest
+          mv cmdline-tools/cmdline-tools/* cmdline-tools/latest/
+          export ANDROID_HOME=$PWD/cmdline-tools/latest
+          export PATH=$ANDROID_HOME/bin:$PATH
+          yes | $ANDROID_HOME/bin/sdkmanager --licenses > /dev/null  # Accept SDK licenses[^32^]
 
       - name: Download and set up Android NDK r21e
         run: |
