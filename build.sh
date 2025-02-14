@@ -61,12 +61,9 @@ endian = 'little'
 EOF
 
 # 编译 numpy 时强制使用交叉编译
-pip install numpy==1.21.6 \
-    --only-binary=numpy \
-    --platform=manylinux2014_armv7l \
-    --target=/tmp/numpy-stubs
-
-export PYTHONPATH="/tmp/numpy-stubs:$PYTHONPATH"
+pip install numpy \
+    --no-binary numpy \
+    --config-settings="--cross-file=$(pwd)/android-cross.ini"
 
 # 编译 fasttext
 pip wheel fasttext==0.9.2 \
