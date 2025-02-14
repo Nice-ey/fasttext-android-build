@@ -1,9 +1,9 @@
-name: Build and Save WHL
+name: Build Chaquopy Wheel
 
 on:
   push:
-    branches: [main]  # 指定触发分支
-  workflow_dispatch:  # 允许手动触发
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -23,25 +23,53 @@ jobs:
           python -m pip install --upgrade pip
           pip install setuptools wheel cython
 
-      - name: Clone and build FastText
+      - name: Download and set up Android SDK
         run: |
-          git clone https://github.com/facebookresearch/fastText.git
-          cd fastText
-          pip wheel .
+          wget https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip
+          unzip -q commandlinetools-linux-7583922_latest.zip
+          export ANDROID_HOME=$PWD/android-sdk
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
+          yes | sdkmanager --licenses > /dev/null  # Accept SDK licenses
 
-      - name: Find and move wheel file
+      - name: Download and set up Android NDK r21e
         run: |
-          WHEEL_FILE=$(find . -name "*.whl" | head -n 1)
-          echo "Found wheel file: $WHEEL_FILE"
-          mkdir -p whl
-          mv $WHEEL_FILE whl/
+          wget https://dl.google.com/android/repository/android-ndk-r21e-linux-x86_64.zip
+          unzip -q android-ndk-r21e-linux-x86_64.zip
+          export ANDROID_NDK_HOME=$PWD/android-ndk-r21e
+          export PATH=$ANDROID_NDK_HOME:$PATH
 
-      - name: Commit and push wheel file
+      - name: Clone Chaquopy build-wheel tool
+        run: |
+          git clone https://github.com/chaquo/chaquopy.git
+          cd chaquopy/server/pypi
+          ./download-target.sh maven/com/chaquo/python/target/3.8.16-0  # Adjust version as needed
+
+      - name: Install additional tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y patch patchelf
+
+      - name: Build Wheel for Chaquopy
+        run: |
+          cd chaquopy/server/pypi
+          ./build-wheel.py --python 3.8 --abi armeabi-v7a fastText  # Adjust ABI and package name as needed
+          ./build-wheel.py --python 3.8 --abi arm64-v8a fastText  # Build for other ABIs
+
+      - name: Rename Wheel files
+        run: |
+          cd chaquopy/server/pypi/dist
+          mv *.whl ../whl/  # Move generated .whl files to whl directory
+          cd ../whl
+          for file in *.whl; do
+            mv "$file" "${file/linux_android/linux}"  # Modify platform tag to linux_armv7l or linux_aarch64
+          done
+
+      - name: Commit and push Wheel files
         env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}  # 使用自定义的 Personal Access Token
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "action@github.com"
           git add whl/
-          git commit -m "Update fasttext wheel file" || echo "No changes to commit"
+          git commit -m "Update Chaquopy wheel files" || echo "No changes to commit"
           git push origin main
