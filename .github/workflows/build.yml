@@ -31,7 +31,7 @@ jobs:
           mv cmdline-tools/cmdline-tools/* cmdline-tools/latest/
           export ANDROID_HOME=$PWD/cmdline-tools/latest
           export PATH=$ANDROID_HOME/bin:$PATH
-          yes | $ANDROID_HOME/bin/sdkmanager --licenses > /dev/null  # Accept SDK licenses[^32^]
+          yes | $ANDROID_HOME/bin/sdkmanager --licenses > /dev/null
 
       - name: Download and set up Android NDK r21e
         run: |
@@ -43,6 +43,10 @@ jobs:
       - name: Clone Chaquopy build-wheel tool
         run: |
           git clone https://github.com/chaquo/chaquopy.git
+          ls -la chaquopy/server/pypi  # Debug: Check directory structure
+
+      - name: Download Chaquopy target
+        run: |
           cd chaquopy/server/pypi
           ./download-target.sh maven/com/chaquo/python/target/3.8.16-0  # Adjust version as needed
 
